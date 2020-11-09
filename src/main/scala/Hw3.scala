@@ -60,34 +60,37 @@ object MiniScalaInterpreter {
       if (env.exists(pair: (Var, Val) => pair._1 == s)) {
         env(Var(s));
       }
-      else throw new Exception("Empty variable");
+      else throw new UndefinedSemantics(s"message undefined variable");
     }
     case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n + r.n;
-      case _ => throw new Exception("Type error");
+      case _ => throw new UndefinedSemantics(s"message ${l} + ${r}");
     }
     case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n - r.n;
-      case _ => throw new Exception("Type error");
+      case _ => throw new UndefinedSemantics(s"message ${l} - ${r}");
     }
     case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n * r.n;
-      case _ => throw new Exception("Type error");
+      case _ => throw new UndefinedSemantics(s"message ${l} * ${r}");
     }
     case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n / r.n;
-      case _ => throw new Exception("Type error");
+      case _ => throw new UndefinedSemantics(s"message ${l} / ${r}");
     }
     case GTExpr(l, r) =>
     case GEQExpr(l, r) =>
-    case Iszero(c) =>
+    case Iszero(c) => doInterpret(env, mem, c) match {
+      case (c: IntVal) => c.n == 0;
+      case _ => throw new UndefinedSemantics(s"message ${l} + ${r}");
+    }
     case Ite(c, t, f) =>
     case ValExpr(name, value, body) =>
     case VarExpr(name, value, body) =>
     case Proc(v, expr) =>
     case DefExpr(fname, aname, fbody, ibody) =>
     case Asn(v, e) =>
-    case Paren(expr) =>
+    case Paren(expr) => doInterpret(env, mem, expr);
     case Block(f, s) =>
     case PCall(ftn, arg) =>
   }
