@@ -56,7 +56,12 @@ object MiniScalaInterpreter {
   
   def doInterpret(env: Env, mem: Mem, expr: Expr): Val = expr match {
     case Const(n) => IntVal(n);
-    case Var(s) => 
+    case Var(s) => {
+      if (env.exists(s)) {
+        env(Var(s));
+      }
+      else throw new Exception("Empty variable");
+    }
     case Add(l, r) =>
     case Sub(l, r) =>
     case Mul(l, r) =>
