@@ -56,7 +56,7 @@ object MiniScalaInterpreter {
   
   def doInterpret(env: Env, mem: Mem, expr: Expr): Val = expr match {
     case Const(n) => IntVal(n);
-    case Var(s) =>
+    case Var(s) => "hello"
     case Add(l, r) =>
     case Sub(l, r) =>
     case Mul(l, r) =>
