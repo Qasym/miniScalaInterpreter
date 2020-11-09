@@ -60,31 +60,34 @@ object MiniScalaInterpreter {
       if (env.exists(pair: (Var, Val) => pair._1 == s)) {
         env(Var(s));
       }
-      else throw new UndefinedSemantics(s"message undefined variable");
+      else throw new UndefinedSemantics(s"undefined variable: ${s}");
     }
     case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n + r.n;
-      case _ => throw new UndefinedSemantics(s"message ${l} + ${r}");
+      case _ => throw new UndefinedSemantics(s"No semantics for ${l} + ${r}");
     }
     case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n - r.n;
-      case _ => throw new UndefinedSemantics(s"message ${l} - ${r}");
+      case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
     }
     case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n * r.n;
-      case _ => throw new UndefinedSemantics(s"message ${l} * ${r}");
+      case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
     }
     case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => l.n / r.n;
-      case _ => throw new UndefinedSemantics(s"message ${l} / ${r}");
+      case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
     }
     case GTExpr(l, r) =>
     case GEQExpr(l, r) =>
     case Iszero(c) => doInterpret(env, mem, c) match {
       case (c: IntVal) => c.n == 0;
-      case _ => throw new UndefinedSemantics(s"message ${l} + ${r}");
+      case _ => throw new UndefinedSemantics(s"Type error: ${c}");
     }
-    case Ite(c, t, f) =>
+    case Ite(c, t, f) => doInterpret(env, mem, c) match {
+      case (c: Boolval) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
+      case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+    }
     case ValExpr(name, value, body) =>
     case VarExpr(name, value, body) =>
     case Proc(v, expr) =>
