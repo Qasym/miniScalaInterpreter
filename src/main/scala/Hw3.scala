@@ -56,32 +56,32 @@ object MiniScalaInterpreter {
   
   def doInterpret(env: Env, mem: Mem, expr: Expr): Val = expr match {
     case Const(n) => IntVal(n);
-    case Var(s) => {
+    case Var(s) => { // Needs reimplementation with memory
       if (env.exists(pair: (Var, Val) => pair._1 == s)) {
         env(Var(s));
       }
       else throw new UndefinedSemantics(s"undefined variable: ${s}");
     }
     case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
-      case (l: IntVal, r: IntVal) => l.n + r.n;
+      case (l: IntVal, r: IntVal) => IntVal(l.n + r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} + ${r}");
     }
     case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
-      case (l: IntVal, r: IntVal) => l.n - r.n;
+      case (l: IntVal, r: IntVal) => IntVal(l.n - r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
     }
     case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
-      case (l: IntVal, r: IntVal) => l.n * r.n;
+      case (l: IntVal, r: IntVal) => IntVal(l.n * r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
     }
     case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
-      case (l: IntVal, r: IntVal) => l.n / r.n;
+      case (l: IntVal, r: IntVal) => IntVal(l.n / r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
     }
     case GTExpr(l, r) =>
     case GEQExpr(l, r) =>
     case Iszero(c) => doInterpret(env, mem, c) match {
-      case (c: IntVal) => c.n == 0;
+      case (c: IntVal) => BoolVal(c.n == 0);
       case _ => throw new UndefinedSemantics(s"Type error: ${c}");
     }
     case Ite(c, t, f) => doInterpret(env, mem, c) match {
