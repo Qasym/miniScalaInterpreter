@@ -56,11 +56,11 @@ object MiniScalaInterpreter {
   
   def doInterpret(env: Env, mem: Mem, expr: Expr): Val = expr match {
     case Const(n) => IntVal(n);
-    case Var(s) => { // Needs reimplementation with memory
-      if (env.exists(pair: (Var, Val) => pair._1 == s)) {
-        env(Var(s));
+    case (vrbl: Var) => { // Needs reimplementation with memory
+      if (env.contains(vrbl)) {
+        env(vrbl);
       }
-      else throw new UndefinedSemantics(s"undefined variable: ${s}");
+      else throw new UndefinedSemantics(s"undefined variable: ${vrbl}");
     }
     case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
       case (l: IntVal, r: IntVal) => IntVal(l.n + r.n);
@@ -78,28 +78,28 @@ object MiniScalaInterpreter {
       case (l: IntVal, r: IntVal) => IntVal(l.n / r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
     }
-    case GTExpr(l, r) =>
-    case GEQExpr(l, r) =>
+    case GTExpr(l, r) => BoolVal(false);
+    case GEQExpr(l, r) => BoolVal(false);
     case Iszero(c) => doInterpret(env, mem, c) match {
       case (c: IntVal) => BoolVal(c.n == 0);
       case _ => throw new UndefinedSemantics(s"Type error: ${c}");
     }
     case Ite(c, t, f) => doInterpret(env, mem, c) match {
-      case (c: Boolval) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
+      case (c: BoolVal) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
       case _ => throw new UndefinedSemantics(s"Type error: ${c}");
     }
-    case ValExpr(name, value, body) =>
-    case VarExpr(name, value, body) =>
+    case ValExpr(name, value, body) => BoolVal(false);
+    case VarExpr(name, value, body) => BoolVal(false);
     case Proc(v, expr) => {
       ProcVal(v, expr, env);
     }
-    case DefExpr(fname, aname, fbody, ibody) =>
-    case Asn(v, e) =>
+    case DefExpr(fname, aname, fbody, ibody) => BoolVal(false);
+    case Asn(v, e) => BoolVal(false);
     case Paren(expr) => doInterpret(env, mem, expr);
-    case Block(f, s) =>
+    case Block(f, s) => BoolVal(false);
     case PCall(ftn, arg) => doInterpret(env, mem, ftn) match {
       case (ftn: ProcVal) => {
-        val new_env = env + (ftn.v -> eval(env.arg));
+        val new_env = env + (ftn.v -> doInterpret(env, mem, arg));
         doInterpret(new_env, mem, ftn.expr);
       }
       case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
