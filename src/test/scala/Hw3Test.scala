@@ -23,9 +23,9 @@ val fibo = """def fibo(x) =
 val miniScalaTestCases = List(
       ("1",IntVal(1))
       ,("1 + 1", IntVal(2))
-      // ,("iszero 1",BoolVal(false))
-      // ,("if iszero 0 then 1 else 2",IntVal(1))
-      // ,("{ val x = 1 ; x+1 }",IntVal(2))
+      ,("iszero 1",BoolVal(false))
+      ,("if iszero 0 then 1 else 2",IntVal(1))
+      ,("{ val x = 1 ; x+1 }",IntVal(2))
       // ,("{ var x = 1 ; x+1 }",IntVal(2))
       // ,("(x) => x + 10",ProcVal(Var("x"),Add(Var("x"),Const(10)),new Env()))
       // ,("((x) => x + 1) 1",IntVal(2))

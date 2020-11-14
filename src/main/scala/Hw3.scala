@@ -62,24 +62,29 @@ object MiniScalaInterpreter {
       }
       else throw new UndefinedSemantics(s"undefined variable: ${vrbl}");
     }
-    case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
+    case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
       case (l: IntVal, r: IntVal) => IntVal(l.n + r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} + ${r}");
     }
-    case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
+    case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
       case (l: IntVal, r: IntVal) => IntVal(l.n - r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
     }
-    case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
+    case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
       case (l: IntVal, r: IntVal) => IntVal(l.n * r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
     }
-    case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, l)) match {
+    case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
       case (l: IntVal, r: IntVal) => IntVal(l.n / r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
     }
-    case GTExpr(l, r) => BoolVal(false);
-    case GEQExpr(l, r) => BoolVal(false);
+    case GTExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+      case (l: IntVal, r: IntVal) => BoolVal(l.n > r.n);
+      case _ => throw new UndefinedSemantics(s"No semantics for ${l} > ${r}");
+    }
+    case GEQExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+      case (l: IntVal, r: IntVal) => BoolVal(l.n >= r.n);
+      case _ => throw new UndefinedSemantics(s"No semantics for ${l} >= ${r}");
     case Iszero(c) => doInterpret(env, mem, c) match {
       case (c: IntVal) => BoolVal(c.n == 0);
       case _ => throw new UndefinedSemantics(s"Type error: ${c}");
