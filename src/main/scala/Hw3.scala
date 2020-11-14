@@ -85,6 +85,7 @@ object MiniScalaInterpreter {
     case GEQExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
       case (l: IntVal, r: IntVal) => BoolVal(l.n >= r.n);
       case _ => throw new UndefinedSemantics(s"No semantics for ${l} >= ${r}");
+    }
     case Iszero(c) => doInterpret(env, mem, c) match {
       case (c: IntVal) => BoolVal(c.n == 0);
       case _ => throw new UndefinedSemantics(s"Type error: ${c}");
@@ -93,8 +94,13 @@ object MiniScalaInterpreter {
       case (c: BoolVal) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
       case _ => throw new UndefinedSemantics(s"Type error: ${c}");
     }
-    case ValExpr(name, value, body) => BoolVal(false);
-    case VarExpr(name, value, body) => BoolVal(false);
+    case ValExpr(name, value, body) => {
+      val new_env = env + (name -> doInterpret(env, mem, value));
+      doInterpret(new_env, mem, body);
+    }
+    case VarExpr(name, value, body) => {
+      IntVal(2);
+    }
     case Proc(v, expr) => {
       ProcVal(v, expr, env);
     }
