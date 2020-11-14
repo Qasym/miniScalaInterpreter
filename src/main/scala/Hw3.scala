@@ -90,12 +90,20 @@ object MiniScalaInterpreter {
     }
     case ValExpr(name, value, body) =>
     case VarExpr(name, value, body) =>
-    case Proc(v, expr) =>
+    case Proc(v, expr) => {
+      ProcVal(v, expr, env);
+    }
     case DefExpr(fname, aname, fbody, ibody) =>
     case Asn(v, e) =>
     case Paren(expr) => doInterpret(env, mem, expr);
     case Block(f, s) =>
-    case PCall(ftn, arg) =>
+    case PCall(ftn, arg) => doInterpret(env, mem, ftn) match {
+      case (ftn: ProcVal) => {
+        val new_env = env + (ftn.v -> eval(env.arg));
+        doInterpret(new_env, mem, ftn.expr);
+      }
+      case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
+    }
   }
   
   def apply(program: String): Val = {
