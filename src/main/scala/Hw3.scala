@@ -114,7 +114,10 @@ object MiniScalaInterpreter {
     case Proc(v, expr) => {
       ProcVal(v, expr, env);
     }
-    case DefExpr(fname, aname, fbody, ibody) => BoolVal(false);
+    case DefExpr(fname, aname, fbody, ibody) => {
+      val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
+      doInterpret(new_env, mem, ibody);
+    }
     case Asn(v, e) => BoolVal(false);
     case Paren(expr) => doInterpret(env, mem, expr);
     case Block(f, s) => BoolVal(false);
@@ -122,6 +125,10 @@ object MiniScalaInterpreter {
       case (ftn: ProcVal) => {
         val new_env = env + (ftn.v -> doInterpret(env, mem, arg));
         doInterpret(new_env, mem, ftn.expr);
+      }
+      case (ftn: RecProcVal) => {
+        val new_env = ftn.env + (ftn.av -> doInterpret(env, mem, arg));
+        doInterpret(new_env, mem, ftn.body);
       }
       case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
     }
