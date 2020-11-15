@@ -146,13 +146,13 @@ object MiniScalaInterpreter {
         val new_mem = Mem(mem.m + (mem.top + 1 -> valorem._4), mem.top + 1);
         eval(new_env, new_mem, body, value);
       }
-      // case Proc(v, expr_) => {
-      //   ProcVal(v, expr, env);
-      // }
-      // case DefExpr(fname, aname, fbody, ibody) => {
-      //   val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
-      //   doInterpret(new_env, mem, ibody);
-      // }
+      case Proc(v, expr_) => {
+        (env, mem, expr, ProcVal(v, expr, env));
+      }
+      case DefExpr(fname, aname, fbody, ibody) => {
+        val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
+        eval(new_env, mem, ibody, value);
+      }
       // case Asn(v, e) => {
       //   val new_mem = env(v) match {
       //     case LocVal(l) => {
@@ -162,22 +162,27 @@ object MiniScalaInterpreter {
       //   }
       //   doInterpret(env, new_mem, v);
       // }
-      case Paren(expr_) => eval(env, mem, expr_, value);
+      case Paren(expr_) => eval((env, mem, expr_, value));
       case Block(f, s) => {
-        val valorum = eval(env, mem, f, value);
-        eval(env, valorum._2, s, value);
+        val valorem = eval((env, mem, f, value));
+        eval(env, valorem._2, s, value);
       }
-      // case PCall(ftn, arg) => doInterpret(env, mem, ftn) match {
-      //   case (ftn: ProcVal) => {
-      //     val new_env = env + (ftn.v -> doInterpret(env, mem, arg));
-      //     doInterpret(new_env, mem, ftn.expr);
-      //   }
-      //   case (ftn: RecProcVal) => {
-      //     val new_env = env + (ftn.av -> doInterpret(env, mem, arg));
-      //     doInterpret(new_env, mem, ftn.body);
-      //   }
-      //   case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
-      // }
+      case PCall(ftn, arg) => {
+        val valorem = eval((env, mem, ftn, value));
+        valorem._4 match {
+          case (func: ProcVal) => {
+            val resulten = eval((env, valorem._2, arg, value));
+            val new_env = func.env + (func.v -> resulten._4);
+            eval((new_env, resulten._2, func.expr, value));
+          }
+          case (func: RecProcVal) => {
+            val resulten = eval((env, valorem._2, arg, value));
+            val new_env = func.env + (func.av -> resulten._4) + (func.fv -> valorem._4);
+            eval(new_env, resulten._2, func.body, value);
+          }
+          case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
+        }
+      }
     }
   }
   
