@@ -58,7 +58,11 @@ object MiniScalaInterpreter {
     case Const(n) => IntVal(n);
     case (vrbl: Var) => { // Needs reimplementation with memory
       if (env.contains(vrbl)) {
-        env(vrbl);
+        env(vrbl) match {
+          case (contents: IntVal) => if (mem.m.contains(contents.n)) mem.m(contents.n) else contents;
+          case (contents: Const) => if (mem.m.contains(contents.n)) mem.m(contents.n) else contents;
+          case _ => env(vrbl);
+        }
       }
       else throw new UndefinedSemantics(s"undefined variable: ${vrbl}");
     }
