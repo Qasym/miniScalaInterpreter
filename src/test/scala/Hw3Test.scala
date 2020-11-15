@@ -26,7 +26,7 @@ val miniScalaTestCases = List(
       ,("iszero 1",BoolVal(false))
       ,("if iszero 0 then 1 else 2",IntVal(1))
       ,("{ val x = 1 ; x+1 }",IntVal(2))
-      // ,("{ var x = 1 ; x+1 }",IntVal(2))
+      ,("{ var x = 1 ; x+1 }",IntVal(2))
       // ,("(x) => x + 10",ProcVal(Var("x"),Add(Var("x"),Const(10)),new Env()))
       // ,("((x) => x + 1) 1",IntVal(2))
       // ,("{def f(x) = if iszero x then 0 else x + (f x-1) ; f 1}",IntVal(1))

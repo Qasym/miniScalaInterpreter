@@ -99,7 +99,13 @@ object MiniScalaInterpreter {
       doInterpret(new_env, mem, body);
     }
     case VarExpr(name, value, body) => {
-      IntVal(2);
+      val new_env = env + (name -> doInterpret(env, mem, Const(mem.top + 1)));
+      val tempLoc: Loc = new_env(name) match {
+        case (n: IntVal) => n.n;
+        case _ => throw new UndefinedSemantics(s"No semantics for ${new_env(name)}");
+      }
+      val new_mem = Mem(mem.m + (tempLoc -> doInterpret(env, mem, value)), mem.top + 1);
+      doInterpret(new_env, new_mem, body)
     }
     case Proc(v, expr) => {
       ProcVal(v, expr, env);
