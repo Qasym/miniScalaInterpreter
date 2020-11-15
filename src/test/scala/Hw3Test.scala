@@ -31,13 +31,11 @@ val miniScalaTestCases = List(
       // ,("((x) => x + 1) 1",IntVal(2))
       // ,("{def f(x) = if iszero x then 0 else x + (f x-1) ; f 1}",IntVal(1))
       // ,("((x) => x - 8) 5",IntVal(-3))
-      ,("{val x = 1 ; {def f(y) = if iszero (x - y) then 0 else 1 ; { val x = 2 ; (f 2)}}}",IntVal(1))
-      // ,("{var x = 1; (x := 2; x)}", IntVal(2))
+      // ,("{val x = 1 ; {def f(y) = if iszero (x - y) then 0 else 1 ; { val x = 2 ; (f 2)}}}",IntVal(1))
+      ,("{var x = 1; (x := 2; x)}", IntVal(2))
       // ,("if 0 > 1 then 1 else 2",IntVal(2))
       // ,("{val x = 1; if 0 > x then 1 else 2}",IntVal(2))
-      // ,("""{def x(y) = 
-      // y;
-      // (if 0 > (x 1) then 1 else 2)}""",IntVal(2))
+      // ,("""{def x(y) = y; (if 0 > (x 1) then 1 else 2)}""",IntVal(2))
       // ,(s"{${fibo}; (fibo 0)}",IntVal(0))
       // ,(s"{${fibo}; (fibo 10)}",IntVal(34))
     )

@@ -60,7 +60,10 @@ object MiniScalaInterpreter {
     case (vrbl: Var) => {
       if (env.contains(vrbl)) {
         env(vrbl) match {
-          case (contents: LocVal) => mem.m(contents.l);
+          case (contents: LocVal) => {
+            println("entered locVal in Var");
+            mem.m(contents.l);
+          }
           case _ => env(vrbl);
         }
       }
@@ -104,11 +107,7 @@ object MiniScalaInterpreter {
     }
     case VarExpr(name, value, body) => {
       val new_env = env + (name -> LocVal(mem.top + 1));
-      val tempLoc: Loc = new_env(name) match {
-        case (n: LocVal) => n.l;
-        case _ => throw new UndefinedSemantics(s"No semantics for ${new_env(name)}");
-      }
-      val new_mem = Mem(mem.m + (tempLoc -> doInterpret(env, mem, value)), mem.top + 1);
+      val new_mem = Mem(mem.m + (mem.top + 1 -> doInterpret(env, mem, value)), mem.top + 1);
       doInterpret(new_env, new_mem, body)
     }
     case Proc(v, expr) => {
@@ -119,10 +118,14 @@ object MiniScalaInterpreter {
       doInterpret(new_env, mem, ibody);
     }
     case Asn(v, e) => {
-      val exprVal = doInterpret(env, mem, e);
-      val new_env = env + (v -> LocVal(mem.top + 1));
-      val new_mem = Mem(mem.m + (mem.top + 1 -> exprVal), mem.top + 1);
-      doInterpret(new_env, new_mem, e);
+      val new_mem = env(v) match {
+        case LocVal(l) => {
+          println("entered locVal in Asn");
+          Mem(mem.m + (l -> doInterpret(env, mem, e)), mem.top);
+        }
+        case _ => throw new UndefinedSemantics(s"No semantics for ${Asn(v, e)}");
+      }
+      doInterpret(env, new_mem, e);
     }
     case Paren(expr) => doInterpret(env, mem, expr);
     case Block(f, s) => {
