@@ -76,42 +76,69 @@ object MiniScalaInterpreter {
       case Add(l, r) => {
         val left = eval(env, mem, l, value);
         val right = eval(env, left._2, r, value);
-        (left._4, right._4) match {
+        (left._4, right._4) match { // sinister and dexter are left and right in Latin, respectively
           case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, IntVal(sinister.n + dexter.n));
           case _ => throw new UndefinedSemantics(s"No semantics for ${l} + ${r}");
         }
       }
-      case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-        case (l: IntVal, r: IntVal) => IntVal(l.n - r.n);
-        case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
+      case Sub(l, r) => {
+        val left = eval(env, mem, l, value);
+        val right = eval(env, left._2, r, value);
+        (left._4, right._4) match {
+          case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, IntVal(sinister.n - dexter.n));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
+        }
       }
-      case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-        case (l: IntVal, r: IntVal) => IntVal(l.n * r.n);
-        case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
+      case Mul(l, r) => {
+        val left = eval(env, mem, l, value);
+        val right = eval(env, left._2, r, value);
+        (left._4, right._4) match {
+          case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, IntVal(sinister.n * dexter.n));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
+        }
       }
-      case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-        case (l: IntVal, r: IntVal) => IntVal(l.n / r.n);
-        case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
+      case Div(l, r) => {
+        val left = eval(env, mem, l, value);
+        val right = eval(env, left._2, r, value);
+        (left._4, right._4) match {
+          case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, IntVal(sinister.n / dexter.n));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
+        }
       }
-      case GTExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-        case (l: IntVal, r: IntVal) => BoolVal(l.n > r.n);
-        case _ => throw new UndefinedSemantics(s"No semantics for ${l} > ${r}");
+      case GTExpr(l, r) => {
+        val left = eval(env, mem, l, value);
+        val right = eval(env, left._2, r, value);
+        (left._4, right._4) match {
+          case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, BoolVal(sinister.n > dexter.n));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${l} > ${r}");
+        }
       }
-      case GEQExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-        case (l: IntVal, r: IntVal) => BoolVal(l.n >= r.n);
-        case _ => throw new UndefinedSemantics(s"No semantics for ${l} >= ${r}");
+      case GEQExpr(l, r) => {
+        val left = eval(env, mem, l, value);
+        val right = eval(env, left._2, r, value);
+        (left._4, right._4) match {
+          case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, BoolVal(sinister.n >= dexter.n));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${l} >= ${r}");
+        }
       }
-      case Iszero(c) => doInterpret(env, mem, c) match {
-        case (c: IntVal) => BoolVal(c.n == 0);
-        case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+      case Iszero(c) => {
+        val valorem = eval(env, mem, c, val); // valeorem is value in Latin
+        valorem._4 match {
+          case (resulten: IntVal) => (env, valorem._2, expr, BoolVal(resulten.n == 0));
+          case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+        }
       }
-      case Ite(c, t, f) => doInterpret(env, mem, c) match {
-        case (c: BoolVal) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
-        case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+      case Ite(c, t, f) => {
+        val conditione = eval(env, mem, c, value); // conditione is condition in Latin
+        val verum = eval(env, conditione._2, t, value); // verum is true in Latin
+        val falsus = eval(env, verum._2, f, value); // falsus is false in Latin
+        conditione._4 match {
+          case (condition: BoolVal) => if (condition.b) verum._4; else falsus._4;
+          case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+        }
       }
       case ValExpr(name, value, body) => {
-        val new_env = env + (name -> doInterpret(env, mem, value));
-        doInterpret(new_env, mem, body);
+        
       }
       case VarExpr(name, value, body) => {
         val new_env = env + (name -> LocVal(mem.top + 1));
