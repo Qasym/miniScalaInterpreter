@@ -135,10 +135,11 @@ object MiniScalaInterpreter {
           case _ => throw new UndefinedSemantics(s"Type error: ${c}");
         }
       }
-      case ValExpr(name, value_, body) => 
+      case ValExpr(name, value_, body) => {
         val valorem = eval((env, mem, value_, value));
         val new_env = env + (name -> valorem._4);
         eval((new_env, valorem._2, body, value));
+      }
       case VarExpr(name, value_, body) => {
         val valorem = eval(env, mem, value_, value);
         if (mem.m.contains(mem.top + 1)) throw new UndefinedSemantics(s"memory already occupied at ${LocVal(mem.top + 1)}");
@@ -146,12 +147,13 @@ object MiniScalaInterpreter {
         val new_mem = Mem(mem.m + (mem.top + 1 -> valorem._4), mem.top + 1);
         eval(new_env, new_mem, body, value);
       }
-      case Proc(v, expr_) => {
-        (env, mem, expr, ProcVal(v, expr, env));
-      }
+      case Proc(v, expr_) => (env, mem, expr, ProcVal(v, expr_, env));
       case DefExpr(fname, aname, fbody, ibody) => {
         val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
-        eval(new_env, mem, ibody, value);
+        eval((new_env, mem, ibody, value));
+      }
+      case Asn(v, e) => {
+        (env, mem, expr, val);
       }
       // case Asn(v, e) => {
       //   val new_mem = env(v) match {
@@ -169,15 +171,17 @@ object MiniScalaInterpreter {
       }
       case PCall(ftn, arg) => {
         val valorem = eval((env, mem, ftn, value));
+        val resulten = eval((env, valorem._2, arg, value));
         valorem._4 match {
           case (func: ProcVal) => {
-            val resulten = eval((env, valorem._2, arg, value));
+            // val resulten = eval((env, valorem._2, arg, value));
             val new_env = func.env + (func.v -> resulten._4);
             eval((new_env, resulten._2, func.expr, value));
           }
           case (func: RecProcVal) => {
-            val resulten = eval((env, valorem._2, arg, value));
-            val new_env = func.env + (func.av -> resulten._4) + (func.fv -> valorem._4);
+            println(valorem._4);
+            // val resulten = eval((env, valorem._2, arg, value));
+            val new_env = func.env + (func.av -> resulten._4) + (func.fv -> func);
             eval(new_env, resulten._2, func.body, value);
           }
           case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
