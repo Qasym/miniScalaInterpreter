@@ -57,90 +57,100 @@ object MiniScalaInterpreter {
     
   }
 
-  def eval(group: Tuple4[Env, Mem, Expr, Val]) = expr match {
-    case Const(n) => ();
-    case (vrbl: Var) => {
-      if (env.contains(vrbl)) {
-        env(vrbl) match {
-          case (contents: LocVal) => mem.m(contents.l);
-          case _ => env(vrbl);
+  def eval(group: Tuple4[Env, Mem, Expr, Val]) = {
+    val env = group._1;
+    val mem = group._2;
+    val expr = group._3;
+    val value = group._4;
+    expr match {
+      case Const(n) => (env, mem, expr, IntVal(n));
+      case (vrbl: Var) => {
+        if (env.contains(vrbl)) {
+          env(vrbl) match {
+            case (contents: LocVal) => (env, mem, expr, mem.m(contents.l));
+            case _ => (env, mem, expr, env(vrbl));
+          }
+        }
+        else throw new UndefinedSemantics(s"undefined variable: ${vrbl}");
+      }
+      case Add(l, r) => {
+        val left = eval(env, mem, l, value);
+        val right = eval(env, left._2, r, value);
+        (left._4, right._4) match {
+          case (sinister: IntVal, dexter: IntVal) => (env, right._2, expr, IntVal(sinister.n + dexter.n));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${l} + ${r}");
         }
       }
-      else throw new UndefinedSemantics(s"undefined variable: ${vrbl}");
-    }
-    case Add(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-      case (l: IntVal, r: IntVal) => IntVal(l.n + r.n);
-      case _ => throw new UndefinedSemantics(s"No semantics for ${l} + ${r}");
-    }
-    case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-      case (l: IntVal, r: IntVal) => IntVal(l.n - r.n);
-      case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
-    }
-    case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-      case (l: IntVal, r: IntVal) => IntVal(l.n * r.n);
-      case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
-    }
-    case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-      case (l: IntVal, r: IntVal) => IntVal(l.n / r.n);
-      case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
-    }
-    case GTExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-      case (l: IntVal, r: IntVal) => BoolVal(l.n > r.n);
-      case _ => throw new UndefinedSemantics(s"No semantics for ${l} > ${r}");
-    }
-    case GEQExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
-      case (l: IntVal, r: IntVal) => BoolVal(l.n >= r.n);
-      case _ => throw new UndefinedSemantics(s"No semantics for ${l} >= ${r}");
-    }
-    case Iszero(c) => doInterpret(env, mem, c) match {
-      case (c: IntVal) => BoolVal(c.n == 0);
-      case _ => throw new UndefinedSemantics(s"Type error: ${c}");
-    }
-    case Ite(c, t, f) => doInterpret(env, mem, c) match {
-      case (c: BoolVal) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
-      case _ => throw new UndefinedSemantics(s"Type error: ${c}");
-    }
-    case ValExpr(name, value, body) => {
-      val new_env = env + (name -> doInterpret(env, mem, value));
-      doInterpret(new_env, mem, body);
-    }
-    case VarExpr(name, value, body) => {
-      val new_env = env + (name -> LocVal(mem.top + 1));
-      if (mem.m.contains(mem.top + 1)) throw new UndefinedSemantics(s"No semantics for VarExpr");
-      val new_mem = Mem(mem.m + (mem.top + 1 -> doInterpret(env, mem, value)), mem.top + 1);
-      doInterpret(new_env, new_mem, body);
-    }
-    case Proc(v, expr) => {
-      ProcVal(v, expr, env);
-    }
-    case DefExpr(fname, aname, fbody, ibody) => {
-      val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
-      doInterpret(new_env, mem, ibody);
-    }
-    case Asn(v, e) => {
-      val new_mem = env(v) match {
-        case LocVal(l) => {
-          Mem(mem.m + (l -> doInterpret(env, mem, e)), mem.top + 1);
+      case Sub(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+        case (l: IntVal, r: IntVal) => IntVal(l.n - r.n);
+        case _ => throw new UndefinedSemantics(s"No semantics for ${l} - ${r}");
+      }
+      case Mul(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+        case (l: IntVal, r: IntVal) => IntVal(l.n * r.n);
+        case _ => throw new UndefinedSemantics(s"No semantics for ${l} * ${r}");
+      }
+      case Div(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+        case (l: IntVal, r: IntVal) => IntVal(l.n / r.n);
+        case _ => throw new UndefinedSemantics(s"No semantics for ${l} / ${r}");
+      }
+      case GTExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+        case (l: IntVal, r: IntVal) => BoolVal(l.n > r.n);
+        case _ => throw new UndefinedSemantics(s"No semantics for ${l} > ${r}");
+      }
+      case GEQExpr(l, r) => (doInterpret(env, mem, l), doInterpret(env, mem, r)) match {
+        case (l: IntVal, r: IntVal) => BoolVal(l.n >= r.n);
+        case _ => throw new UndefinedSemantics(s"No semantics for ${l} >= ${r}");
+      }
+      case Iszero(c) => doInterpret(env, mem, c) match {
+        case (c: IntVal) => BoolVal(c.n == 0);
+        case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+      }
+      case Ite(c, t, f) => doInterpret(env, mem, c) match {
+        case (c: BoolVal) => if (c.b) doInterpret(env, mem, t); else doInterpret(env, mem, f);
+        case _ => throw new UndefinedSemantics(s"Type error: ${c}");
+      }
+      case ValExpr(name, value, body) => {
+        val new_env = env + (name -> doInterpret(env, mem, value));
+        doInterpret(new_env, mem, body);
+      }
+      case VarExpr(name, value, body) => {
+        val new_env = env + (name -> LocVal(mem.top + 1));
+        if (mem.m.contains(mem.top + 1)) throw new UndefinedSemantics(s"No semantics for VarExpr");
+        val new_mem = Mem(mem.m + (mem.top + 1 -> doInterpret(env, mem, value)), mem.top + 1);
+        doInterpret(new_env, new_mem, body);
+      }
+      case Proc(v, expr) => {
+        ProcVal(v, expr, env);
+      }
+      case DefExpr(fname, aname, fbody, ibody) => {
+        val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
+        doInterpret(new_env, mem, ibody);
+      }
+      case Asn(v, e) => {
+        val new_mem = env(v) match {
+          case LocVal(l) => {
+            Mem(mem.m + (l -> doInterpret(env, mem, e)), mem.top + 1);
+          }
+          case _ => throw new UndefinedSemantics(s"No semantics for ${Asn(v, e)}");
         }
-        case _ => throw new UndefinedSemantics(s"No semantics for ${Asn(v, e)}");
+        doInterpret(env, new_mem, v);
       }
-      doInterpret(env, new_mem, v);
-    }
-    case Paren(expr) => doInterpret(env, mem, expr);
-    case Block(f, s) => {
-      doInterpret(env, mem, f);
-      doInterpret(env, mem, s);
-    }
-    case PCall(ftn, arg) => doInterpret(env, mem, ftn) match {
-      case (ftn: ProcVal) => {
-        val new_env = env + (ftn.v -> doInterpret(env, mem, arg));
-        doInterpret(new_env, mem, ftn.expr);
+      case Paren(expr) => doInterpret(env, mem, expr);
+      case Block(f, s) => {
+        doInterpret(env, mem, f);
+        doInterpret(env, mem, s);
       }
-      case (ftn: RecProcVal) => {
-        val new_env = env + (ftn.av -> doInterpret(env, mem, arg));
-        doInterpret(new_env, mem, ftn.body);
+      case PCall(ftn, arg) => doInterpret(env, mem, ftn) match {
+        case (ftn: ProcVal) => {
+          val new_env = env + (ftn.v -> doInterpret(env, mem, arg));
+          doInterpret(new_env, mem, ftn.expr);
+        }
+        case (ftn: RecProcVal) => {
+          val new_env = env + (ftn.av -> doInterpret(env, mem, arg));
+          doInterpret(new_env, mem, ftn.body);
+        }
+        case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
       }
-      case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
     }
   }
   
