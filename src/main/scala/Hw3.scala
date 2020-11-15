@@ -125,7 +125,10 @@ object MiniScalaInterpreter {
       doInterpret(new_env, new_mem, e);
     }
     case Paren(expr) => doInterpret(env, mem, expr);
-    case Block(f, s) => BoolVal(false);
+    case Block(f, s) => {
+      doInterpret(env, mem, f);
+      doInterpret(env, mem, s);
+    }
     case PCall(ftn, arg) => doInterpret(env, mem, ftn) match {
       case (ftn: ProcVal) => {
         val new_env = env + (ftn.v -> doInterpret(env, mem, arg));
