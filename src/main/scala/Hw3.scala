@@ -54,13 +54,13 @@ object MiniScalaInterpreter {
   case class UndefinedSemantics(msg: String = "", cause: Throwable = None.orNull) extends Exception("Undefined Semantics: " ++ msg, cause)
   
   
-  def doInterpret(env: Env, mem: Mem, expr: Expr): Val = expr match {
+  def doInterpret(env: Env, mem: Mem, expr: Expr): Val = 
+    expr match {
     case Const(n) => IntVal(n);
-    case (vrbl: Var) => { // Needs reimplementation with memory
+    case (vrbl: Var) => {
       if (env.contains(vrbl)) {
         env(vrbl) match {
-          case (contents: IntVal) => if (mem.m.contains(contents.n)) mem.m(contents.n) else contents;
-          case (contents: Const) => if (mem.m.contains(contents.n)) mem.m(contents.n) else contents;
+          case (contents: LocVal) => mem.m(contents.l);
           case _ => env(vrbl);
         }
       }
@@ -103,9 +103,9 @@ object MiniScalaInterpreter {
       doInterpret(new_env, mem, body);
     }
     case VarExpr(name, value, body) => {
-      val new_env = env + (name -> doInterpret(env, mem, Const(mem.top + 1)));
+      val new_env = env + (name -> LocVal(mem.top + 1));
       val tempLoc: Loc = new_env(name) match {
-        case (n: IntVal) => n.n;
+        case (n: LocVal) => n.l;
         case _ => throw new UndefinedSemantics(s"No semantics for ${new_env(name)}");
       }
       val new_mem = Mem(mem.m + (tempLoc -> doInterpret(env, mem, value)), mem.top + 1);
@@ -127,7 +127,7 @@ object MiniScalaInterpreter {
         doInterpret(new_env, mem, ftn.expr);
       }
       case (ftn: RecProcVal) => {
-        val new_env = ftn.env + (ftn.av -> doInterpret(env, mem, arg));
+        val new_env = env + (ftn.av -> doInterpret(env, mem, arg));
         doInterpret(new_env, mem, ftn.body);
       }
       case _ => throw new UndefinedSemantics(s"Type error: ${ftn}");
