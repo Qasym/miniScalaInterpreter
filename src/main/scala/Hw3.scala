@@ -156,13 +156,11 @@ object MiniScalaInterpreter {
       case Asn(v, e) => {
         val valoren = eval(env, mem, e, value);
         env(v) match {
-          case LocVal(l) => eval((env, Mem(mem.m + (l -> valoren._4), mem.top), e, value));
+          case LocVal(l) => (env, Mem(mem.m + (l -> valoren._4), mem.top), e, valoren._4);
           case _ => throw new UndefinedSemantics(s"No semantics for ${Asn(v, e)}");
         }
       }
-      case Paren(expr_) => {
-        eval((env, mem, expr_, value));
-      }
+      case Paren(expr_) => eval((env, mem, expr_, value));
       case Block(f, s) => {
         val valorem = eval((env, mem, f, value));
         eval(env, valorem._2, s, value);
