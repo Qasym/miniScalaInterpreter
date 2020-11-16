@@ -61,12 +61,8 @@ object MiniScalaInterpreter {
     val expr = group._3;
     val value = group._4;
     expr match {
-      case Const(n) => {
-        // println("Const")
-        (env, mem, expr, IntVal(n));
-      }
+      case Const(n) => (env, mem, expr, IntVal(n));
       case (vrbl: Var) => {
-        // println("Var")
         if (env.contains(vrbl)) {
           env(vrbl) match {
             case (contents: LocVal) => (env, mem, expr, mem.m(contents.l));
@@ -76,7 +72,6 @@ object MiniScalaInterpreter {
         else throw new UndefinedSemantics(s"undefined variable: ${vrbl}");
       }
       case Add(l, r) => {
-        // println("Add")
         val left = eval((env, mem, l, value));
         val right = eval((env, left._2, r, value));
         (left._4, right._4) match { // sinister and dexter are left and right in Latin, respectively
@@ -85,7 +80,6 @@ object MiniScalaInterpreter {
         }
       }
       case Sub(l, r) => {
-        // println("Sub")
         val left = eval((env, mem, l, value));
         val right = eval((env, left._2, r, value));
         (left._4, right._4) match {
@@ -94,7 +88,6 @@ object MiniScalaInterpreter {
         }
       }
       case Mul(l, r) => {
-        // println("Mul")
         val left = eval((env, mem, l, value));
         val right = eval((env, left._2, r, value));
         (left._4, right._4) match {
@@ -103,7 +96,6 @@ object MiniScalaInterpreter {
         }
       }
       case Div(l, r) => {
-        // println("Div")
         val left = eval((env, mem, l, value));
         val right = eval((env, left._2, r, value));
         (left._4, right._4) match {
@@ -112,7 +104,6 @@ object MiniScalaInterpreter {
         }
       }
       case GTExpr(l, r) => {
-        // println("GTExpr")
         val left = eval((env, mem, l, value));
         val right = eval((env, left._2, r, value));
         (left._4, right._4) match {
@@ -121,7 +112,6 @@ object MiniScalaInterpreter {
         }
       }
       case GEQExpr(l, r) => {
-        // println("GEQExpr")
         val left = eval((env, mem, l, value));
         val right = eval((env, left._2, r, value));
         (left._4, right._4) match {
@@ -130,7 +120,6 @@ object MiniScalaInterpreter {
         }
       }
       case Iszero(c) => {
-        // println("iszero")
         val valorem = eval((env, mem, c, value)); // valeorem is value in Latin
         valorem._4 match {
           case (resulten: IntVal) => (env, valorem._2, expr, BoolVal(resulten.n == 0));
@@ -138,7 +127,6 @@ object MiniScalaInterpreter {
         }
       }
       case Ite(c, t, f) => {
-        // println("Ite")
         val conditione = eval((env, mem, c, value)); // conditione is condition in Latin
         conditione._4 match {
           case (condition: BoolVal) => {
@@ -149,52 +137,37 @@ object MiniScalaInterpreter {
         }
       }
       case ValExpr(name, value_, body) => {
-        // println("ValExpr")
         val valorem = eval((env, mem, value_, value));
         val new_env = env + (name -> valorem._4);
         eval((new_env, valorem._2, body, value));
       }
       case VarExpr(name, value_, body) => {
-        // println("VarExpr")
         val valorem = eval(env, mem, value_, value);
         if (mem.m.contains(mem.top + 1)) throw new UndefinedSemantics(s"memory already occupied at ${LocVal(mem.top + 1)}");
         val new_env = env + (name -> LocVal(mem.top + 1));
         val new_mem = Mem(mem.m + (mem.top + 1 -> valorem._4), mem.top + 1);
         eval(new_env, new_mem, body, value);
       }
-      case Proc(v, expr_) => {
-        // println("Proc")
-        (env, mem, expr, ProcVal(v, expr_, env));
-      }
+      case Proc(v, expr_) => (env, mem, expr, ProcVal(v, expr_, env));
       case DefExpr(fname, aname, fbody, ibody) => {
-        // println("defExpr")
         val new_env = env + (fname -> RecProcVal(fname, aname, fbody, env));
         eval((new_env, mem, ibody, value));
       }
       case Asn(v, e) => {
-        // println("Asn");
-        (env, mem, expr, value);
+        val valoren = eval(env, mem, e, value);
+        env(v) match {
+          case LocVal(l) => eval((env, Mem(mem.m + (l -> valoren._4), mem.top), e, value));
+          case _ => throw new UndefinedSemantics(s"No semantics for ${Asn(v, e)}");
+        }
       }
-      // case Asn(v, e) => {
-      //   val new_mem = env(v) match {
-      //     case LocVal(l) => {
-      //       Mem(mem.m + (l -> doInterpret(env, mem, e)), mem.top + 1);
-      //     }
-      //     case _ => throw new UndefinedSemantics(s"No semantics for ${Asn(v, e)}");
-      //   }
-      //   doInterpret(env, new_mem, v);
-      // }
       case Paren(expr_) => {
-        // println("Paren");
         eval((env, mem, expr_, value));
       }
       case Block(f, s) => {
-        // println("Blcok");
         val valorem = eval((env, mem, f, value));
         eval(env, valorem._2, s, value);
       }
       case PCall(ftn, arg) => {
-        // println("PCall");
         val valorem = eval((env, mem, ftn, value));
         val resulten = eval((env, valorem._2, arg, value));
         valorem._4 match {
