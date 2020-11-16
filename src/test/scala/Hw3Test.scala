@@ -20,9 +20,26 @@ val fibo = """def fibo(x) =
             }
           }
         }"""
+val f = """def f(x) = 
+          if x >= 0 then {
+            1
+          } else {
+            0
+          }"""
+val ptwo = """def ptwo(x) = 
+    if x > 0 then {
+      (ptwo (x-1)) * 2
+    } else {
+      1
+    }"""
 val miniScalaTestCases = List(
       ("100",IntVal(100))
       ,("1 + 1", IntVal(2))
+      ,(s"{var y = 3; {def sq(x) = y := x * x; (sq y)}}", IntVal(9))
+      ,(s"{${f}; (f 4)}", IntVal(1))
+      ,(s"{${ptwo}; {(ptwo 4); {var a = 10; (ptwo a)}}}", IntVal(1024))
+      ,("{var x = 1; {x := 2; {x; x := 3}}}", IntVal(3))
+      ,("{var a = 1; {def f(x) = a := a + 1; {(f 1); (f 1)}}}",IntVal(3))
       ,("iszero 1",BoolVal(false))
       ,("if iszero 0 then 1 else 2",IntVal(1))
       ,("{ val x = 1 ; x+1 }",IntVal(2))
